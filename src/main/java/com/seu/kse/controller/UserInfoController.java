@@ -100,7 +100,7 @@ public class UserInfoController {
             LogUtils.error(e.getMessage(),UserInfoController.class);
         }
         String uid = request.getParameter("uid");
-        String[] tagNameList = request.getParameter("tags").split(",");
+        String[] tagNameList = request.getParameter("tags").split(",|，");
         int line = 0;
         for(String tagName : tagNameList){
 
@@ -119,7 +119,12 @@ public class UserInfoController {
         List<UserPaperBehavior> userAndPapers = userPaperService.getUserPaperByUID(uid);
         List<Paper> hisPapers = new ArrayList<Paper>();
         List<Paper> writerPapers = new ArrayList<Paper>();
+        int limit = 20;
+        int cnt = 0;
         for(UserPaperBehavior up : userAndPapers){
+            if(cnt++ > limit){
+                break;
+            }
             String pid = up.getPid();
             Paper paper =paperService.searchPaper(pid);
             if(up.getReaded() == 1 && paper!=null){

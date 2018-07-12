@@ -106,7 +106,9 @@
     <mvc:interceptors>
         <!-- 多个拦截器，按顺序执行 -->
         <mvc:interceptor>
-            <mvc:mapping path="*"/> <!-- 拦截所有的url包括子url路径 -->
+            <mvc:mapping path="/**"/> <!-- 拦截所有的url包括子url路径 -->
+            <mvc:exclude-mapping path="/login/register.jsp"/>
+            <mvc:exclude-mapping path="/index.jsp"/>
             <bean class="com.seu.kse.interceptor.LoginInterceptor"/>
         </mvc:interceptor>
         <!-- 其他拦截器 -->

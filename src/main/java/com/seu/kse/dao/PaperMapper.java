@@ -35,4 +35,6 @@ public interface PaperMapper {
     List<Paper> selectAllArxivPaper();
 
     List<Paper> selectLimitPaper(int limit);
+
+    List<Paper> selectLimitArxiv(int limit);
 }

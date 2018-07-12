@@ -18,7 +18,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter{
     UserServiceImpl userService;
 
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        User loginUser = (User) request.getSession().getAttribute("loginUser");
+        User loginUser = (User) request.getSession().getAttribute(Constant.CURRENT_USER);
 
         if(loginUser == null){
             String loginCookieUseID = "";
@@ -43,6 +43,6 @@ public class LoginInterceptor extends HandlerInterceptorAdapter{
                 }
             }
         }
-        return false;
+        return true;
     }
 }

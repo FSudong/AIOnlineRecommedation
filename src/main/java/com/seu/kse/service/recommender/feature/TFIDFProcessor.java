@@ -41,7 +41,7 @@ public class TFIDFProcessor {
         TFIDF.fit();
         return TFIDF;
     }
-    public static void process(List<Paper> paperList){
+    public static void process(List<Paper> paperList,List<Paper> AllPaper){
         String path = TFIDFProcessor.class.getClassLoader().getResource("/").getPath()+Configuration.documents;
 
 
@@ -51,18 +51,18 @@ public class TFIDFProcessor {
             PaperDocument.ToDocument(path,paperList);
             SentenceIterator sentenceIterator = new BasicLineIterator(path);
             LogUtils.info("TF-IDF训练中。。。",TFIDFProcessor.class);
-            TfidfVectorizer TFIDF =train(sentenceIterator);
+            RecommenderCache.TFIDF =train(sentenceIterator);
             LogUtils.info("TF-IDF训练完成",TFIDFProcessor.class);
             RecommenderCache.paperIDMapRowID = new HashMap<String, Integer>();
             RecommenderCache.rowIDMappaperID = new ArrayList<String>();
             RecommenderCache.paperVecs = new HashMap<String, double[]>();
             //构造集合 设置ID对应的向量
-            for(int i=0;i<paperList.size();i++){
-                Paper cur_paper = paperList.get(i);
+            for(int i=0;i<AllPaper.size();i++){
+                Paper cur_paper = AllPaper.get(i);
                 RecommenderCache.paperIDMapRowID.put(cur_paper.getId(),i);
                 RecommenderCache.rowIDMappaperID.add(cur_paper.getId());
                 String cur_content = cur_paper.getTitle()+"."+cur_paper.getPaperAbstract();
-                INDArray cur_vec = TFIDF.transform(cur_content);
+                INDArray cur_vec = RecommenderCache.TFIDF.transform(cur_content);
                 double [] vectors = new double[cur_vec.length()];
                 for(int k = 0 ; k<cur_vec.length(); k++){
                     vectors[k] = cur_vec.getDouble(k);
@@ -73,7 +73,7 @@ public class TFIDFProcessor {
             //计算论文相似度矩阵
             LogUtils.info("计算论文相似列表",TFIDFProcessor.class);
             //计算论文top相似列表
-            ReccommendUtils.generateSimilarPaperList();
+            //ReccommendUtils.generateSimilarPaperList(paperList.size());
 
             LogUtils.info("TF-IDF模型训练完成",TFIDFProcessor.class);
 

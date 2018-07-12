@@ -33,13 +33,15 @@ public class RecommendationService {
     private final UserMapper userDao;
     private final UserPaperBehaviorMapper userPaperBehaviorDao;
     private final UserTagMapper userTagDao;
+    private final CBKNNModel cbknnModel;
 
     @Autowired
-    public RecommendationService(PaperMapper paperDao, UserMapper userDao, UserPaperBehaviorMapper userPaperBehaviorDao, UserTagMapper userTagDao) {
+    public RecommendationService(PaperMapper paperDao, UserMapper userDao, UserPaperBehaviorMapper userPaperBehaviorDao, UserTagMapper userTagDao,CBKNNModel cbknnModel) {
         this.paperDao = paperDao;
         this.userDao = userDao;
         this.userPaperBehaviorDao = userPaperBehaviorDao;
         this.userTagDao = userTagDao;
+        this.cbknnModel = cbknnModel;
         init();
     }
 
@@ -47,7 +49,7 @@ public class RecommendationService {
 
             LogUtils.info("init start",RecommendationService.class);
             LogUtils.info("read all paper"   ,RecommendationService.class);
-            List<Paper> papers = paperDao.selectLimitPaper(8000);
+            List<Paper> papers = paperDao.selectLimitArxiv(100);
             LogUtils.info("read new paper",RecommendationService.class);
             List<Paper> newPapers = paperDao.selectPaperOrderByTime(0,5,10);
             LogUtils.info("read user",RecommendationService.class);
@@ -56,9 +58,10 @@ public class RecommendationService {
             Map<String,List<UserPaperBehavior>> userPaperBehaviors = new HashMap<String, List<UserPaperBehavior>>();
             Map<String, List<UserTagKey>> usersTag = new HashMap<String, List<UserTagKey>>();
             setUserInformation(userPaperBehaviors, usersTag, users);
+            //List<Paper> allPapers = paperDao.selectAllPaper();
             //训练模型
-            cmodel = new CBKNNModel(true,papers,1);
-            cmodel.model(papers,userPaperBehaviors,users,newPapers, usersTag);
+            cbknnModel.init(true,papers,papers,1);
+            cbknnModel.model(papers,userPaperBehaviors,users,newPapers,usersTag);
             LogUtils.info("init complete",RecommendationService.class);
 
     }
@@ -69,7 +72,8 @@ public class RecommendationService {
         //生产文件
         LogUtils.info("model update init!",RecommendationService.class);
 
-        List<Paper> papers = paperDao.selectLimitPaper(8000);
+        List<Paper> papers = paperDao.selectLimitArxiv(8000);
+        System.out.println(papers.size());
         List<Paper> newPapers = paperDao.selectPaperOrderByTime(0,5,10);
         List<User> users = userDao.getAllUser();
         Map<String,List<UserPaperBehavior>> userPaperBehaviors = new HashMap<String, List<UserPaperBehavior>>();
@@ -77,8 +81,10 @@ public class RecommendationService {
 
         setUserInformation(userPaperBehaviors, usersTag, users);
 
-        cmodel = new CBKNNModel(true,papers,1);
-        cmodel.model(papers,userPaperBehaviors,users,newPapers,usersTag);
+        //List<Paper> allPapers = paperDao.selectAllPaper();
+        //训练模型
+        cbknnModel.init(true,papers,papers,1);
+        cbknnModel.model(papers,userPaperBehaviors,users,newPapers,usersTag);
         LogUtils.info("model update complete !",RecommendationService.class);
     }
 

@@ -72,6 +72,13 @@
     from paper ORDER BY time DESC limit #{arg0}
   </select>
 
+  <select id="selectLimitArxiv" resultMap="ResultMapWithBLOBs">
+    SELECT
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from paper where type = 0  ORDER BY time DESC limit #{arg0}
+  </select>
 
   <select id="selectAllArxivPaper" resultMap="ResultMapWithBLOBs">
     SELECT

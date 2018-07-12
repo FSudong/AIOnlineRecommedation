@@ -154,7 +154,7 @@ public class Word2vecProcessor {
     public  static void trainSimPaper(List<Paper> papers)  {
 
         //URL url = CBKNNModel.class.getClassLoader().getResource(Configuration.Paper_Model_Path);
-        ReccommendUtils.generateSimilarPaperList();
+        ReccommendUtils.generateSimilarPaperList(papers.size());
         try {
             String root_path = CBKNNModel.class.getClassLoader().getResource("/").getPath();
             FileOutputStream fos = new FileOutputStream(root_path+"/"+Configuration.Paper_Model_Path);

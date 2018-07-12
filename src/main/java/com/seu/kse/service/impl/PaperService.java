@@ -3,8 +3,10 @@ package com.seu.kse.service.impl;
 import com.seu.kse.bean.Paper;
 import com.seu.kse.bean.PaperSims;
 import com.seu.kse.dao.PaperMapper;
+import com.seu.kse.service.recommender.ReccommendUtils;
 import com.seu.kse.service.recommender.RecommenderCache;
 import com.seu.kse.service.recommender.model.PaperSim;
+import com.seu.kse.util.Constant;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.springframework.stereotype.Service;
 
@@ -92,8 +94,8 @@ public class PaperService {
      * @return
      */
     public List<Paper> getArxivPapers(int pageNum, int limit){
-        List<Paper> papers =new ArrayList<Paper>();
-        papers = paperdao.selectAllArxivPaper();
+
+        List<Paper> papers  = paperdao.selectAllArxivPaper();
         return papers;
     }
 
@@ -113,18 +115,19 @@ public class PaperService {
      * @return
      */
     public List<Paper> getSimPaper(String pid, int k){
-        List<Paper> res = new ArrayList<Paper>();
-        List<PaperSim> sims = new ArrayList<PaperSim>();
-        if(RecommenderCache.similarPaperList != null && RecommenderCache.similarPaperList.size()!=0){
-            sims = RecommenderCache.similarPaperList.get(pid);
-        }
-        if(sims!=null&&sims.size()!=0){
-            int minSize = Math.min(k,sims.size());
-            for(int i=0 ;i<minSize;i++){
-                res.add(paperdao.selectByPrimaryKey(sims.get(i).getPid()));
-            }
-        }
-        return  res;
+//        List<Paper> res = new ArrayList<Paper>();
+//        List<PaperSim> sims = new ArrayList<PaperSim>();
+//        if(RecommenderCache.similarPaperList != null && RecommenderCache.similarPaperList.size()!=0){
+//            sims = RecommenderCache.similarPaperList.get(pid);
+//        }
+//        if(sims!=null&&sims.size()!=0){
+//            int minSize = Math.min(k,sims.size());
+//            for(int i=0 ;i<minSize;i++){
+//                res.add(paperdao.selectByPrimaryKey(sims.get(i).getPid()));
+//            }
+//        }
+
+        return  calSimPaper(pid,k);
     }
 
     //使用 优先队列取 top k
@@ -157,4 +160,39 @@ public class PaperService {
         return  res;
     }
 
+    public List<Paper> calSimPaper(String pid, int k){
+        List<Paper> res = new ArrayList<Paper>();
+        if(RecommenderCache.paperIDMapRowID.get(pid)==null){
+            return res;
+        }
+        List<PaperSim> sims = new ArrayList<PaperSim>();
+        Queue<PaperSim> maxKPaper = new PriorityQueue<PaperSim>(Constant.SIM_NUM);
+        double[] p_vec = RecommenderCache.paperVecs.get(pid);
+        for(Map.Entry<String, double[]> e2 : RecommenderCache.paperVecs.entrySet()){
+            String pid2 = e2.getKey();
+            if(pid.equals(pid2) || pid == pid2 ) continue;
+            double sim = ReccommendUtils.cosinSimilarity(p_vec,e2.getValue());
+            PaperSim paperSim = new PaperSim(pid2, sim);
+            //sims.add(paperSim);
+            if(maxKPaper.size()<Constant.SIM_NUM){
+                maxKPaper.add(paperSim);
+            }else{
+                PaperSim lowest = maxKPaper.peek();
+                if(paperSim.compareTo(lowest)>0){
+                    maxKPaper.poll();
+                    maxKPaper.add(paperSim);
+                }
+            }
+        }
+        sims.addAll(maxKPaper);
+        Collections.reverse(sims);
+
+        int minSize = Math.min(k,sims.size());
+        for(int i=0 ;i<minSize;i++){
+
+            res.add(paperdao.selectByPrimaryKey(sims.get(i).getPid()));
+        }
+
+        return  res;
+    }
 }

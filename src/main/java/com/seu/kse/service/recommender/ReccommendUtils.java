@@ -50,6 +50,9 @@ public class ReccommendUtils {
         return sim;
     }
 
+
+
+
     public static String[] segmentation(String sentence){
         String[] words = sentence.split(" ");
         return words;
@@ -103,13 +106,21 @@ public class ReccommendUtils {
         return delWords;
     }
 
-    public static void generateSimilarPaperList(){
+    public static void generateSimilarPaperList(int limit){
+        int i = 0;
+        int j = 0;
         for(Map.Entry<String, double[]> e1 : RecommenderCache.paperVecs.entrySet()){
+            if(i++>limit){
+                break;
+            }
             List<PaperSim> sims = new ArrayList<PaperSim>();
             Queue<PaperSim> maxKPaper = new PriorityQueue<PaperSim>(Constant.SIM_NUM);
             String pid1 = e1.getKey();
             for(Map.Entry<String, double[]> e2 : RecommenderCache.paperVecs.entrySet()){
                 if(e1==e2) continue;
+                if(j++>limit){
+                    break;
+                }
                 String pid2 = e2.getKey();
                 double sim = ReccommendUtils.cosinSimilarity(e1.getValue(),e2.getValue());
                 PaperSim paperSim = new PaperSim(pid2, sim);

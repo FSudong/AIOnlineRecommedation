@@ -1,6 +1,7 @@
 package com.seu.kse.service.recommender;
 
 import com.seu.kse.service.recommender.model.PaperSim;
+import org.deeplearning4j.bagofwords.vectorizer.TfidfVectorizer;
 import org.deeplearning4j.models.word2vec.Word2Vec;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
@@ -42,5 +43,7 @@ public class RecommenderCache {
 
     //用户-论文 相似度矩阵
     public static INDArray userPaperSimilarityMatrix ;
+
+    public static TfidfVectorizer TFIDF ;
 
 }

@@ -40,7 +40,11 @@ public class UserTagService {
             line = tagDao.insert(tag);
         }
         //插入 user_tag表
-        line = line +userTagDao.insert(userAndTag);
+        try{
+            line = line +userTagDao.insert(userAndTag);
+        }catch (Exception e){
+            LogUtils.error(e.getMessage(),UserTagService.class);
+        }
         return line;
     }
 }

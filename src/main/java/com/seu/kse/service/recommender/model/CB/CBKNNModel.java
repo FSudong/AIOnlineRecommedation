@@ -4,6 +4,7 @@ import com.seu.kse.bean.Paper;
 import com.seu.kse.bean.User;
 import com.seu.kse.bean.UserPaperBehavior;
 import com.seu.kse.bean.UserTagKey;
+import com.seu.kse.dao.PaperMapper;
 import com.seu.kse.service.recommender.RecommenderCache;
 import com.seu.kse.service.recommender.feature.TFIDFProcessor;
 import com.seu.kse.service.recommender.ReccommendUtils;
@@ -14,28 +15,31 @@ import com.seu.kse.util.LogUtils;
 import com.seu.kse.util.Utils;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.springframework.stereotype.Service;
 
 
+import javax.annotation.Resource;
 import java.util.*;
 
 /**
  * Created by yaosheng on 2017/5/26.
  */
-
+@Service
 public class CBKNNModel {
+    @Resource
+    private PaperMapper paperDao;
 
 
-
-    public CBKNNModel(boolean open,List<Paper> papers,int type){
+    public void init(boolean open,List<Paper> trainPapers,List<Paper> allPapers,  int type){
         RecommenderCache.similarPaperList = new HashMap<String, List<PaperSim>>();
 
         if(open){
             if(type == 0){
-                Word2vecProcessor.process(papers);
+                Word2vecProcessor.process(trainPapers);
             }else if(type == 1){
-                TFIDFProcessor.process(papers);
+                TFIDFProcessor.process(trainPapers, allPapers);
             }else if(type == 2){
-                TFIDFProcessor.processByMatrix(papers);
+                TFIDFProcessor.processByMatrix(trainPapers);
             }
 
         }else{
@@ -83,6 +87,19 @@ public class CBKNNModel {
                 if(vec!=null){
                     history.put(pid, vec);
                     weight.put(pid, score);
+                }else if(score>0){
+                    Paper paper = paperDao.selectByPrimaryKey(pid);
+                    if(paper == null) continue;
+                    String abs = paper.getPaperAbstract();
+                    String title = paper.getTitle();
+                    String content = abs +" "+title;
+                    INDArray cur_vec = RecommenderCache.TFIDF.transform(content);
+                    double [] vectors = new double[cur_vec.length()];
+                    for(int k = 0 ; k<cur_vec.length(); k++){
+                        vectors[k] = cur_vec.getDouble(k);
+                    }
+                    history.put(pid, vectors);
+                    weight.put(pid, score);
                 }
             }
             //计算其他论文和history论文中的相似度
@@ -100,7 +117,7 @@ public class CBKNNModel {
                         continue;
                     }
                     double sim = ReccommendUtils.cosinSimilarity(his.getValue(),vec);
-                    everySim = weight.get(his.getKey()) * sim;
+                    everySim = weight.get(his.getKey())* sim;
                     count++;
                 }
                 if(!readed){

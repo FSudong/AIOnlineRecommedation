@@ -99,7 +99,7 @@ public class PaperInfoController {
        /* if(!Utils.testConnect()){
             return "/index";
         }*/
-        User login_user = Utils.testLogin(session,model);
+
         String id = request.getParameter("id");
         Paper paper = paperService.searchPaper(id);
         //System.out.println("URL: "+paper.getUrl());
@@ -115,24 +115,24 @@ public class PaperInfoController {
             authorsOfpaper.add(author);
         }
         model.addAttribute("authors",authorsOfpaper);
-
-        if(login_user!=null) {
-            Byte yes = 1;
-            Byte no = 0;
-           //UserPaperNoteKey keys = new UserPaperNoteKey(login_user.getId(),paper.getId());
-            UserPaperNoteKey key = new UserPaperNoteKey(login_user.getId(),paper.getId());
-            UserPaperNoteWithBLOBs paperNote = userPaperNoteDao.selectByPrimaryKey(key);
-            //System.out.println(paperNotes.size());
-            model.addAttribute("note",paperNote);
-            //修改用户-论文行为记录
-            UserPaperBehavior ub = new UserPaperBehavior();
-            ub.setUid(login_user.getId());
-            ub.setAuthor(no);
-            ub.setReaded(yes);
-            ub.setInterest(3);
-            ub.setPid(id);
-            userPaperService.insertObject(ub);
-        }
+//        User login_user = Utils.testLogin(session,model);
+//        if(login_user!=null) {
+//            Byte yes = 1;
+//            Byte no = 0;
+//           //UserPaperNoteKey keys = new UserPaperNoteKey(login_user.getId(),paper.getId());
+//            UserPaperNoteKey key = new UserPaperNoteKey(login_user.getId(),paper.getId());
+//            UserPaperNoteWithBLOBs paperNote = userPaperNoteDao.selectByPrimaryKey(key);
+//            //System.out.println(paperNotes.size());
+//            model.addAttribute("note",paperNote);
+//            //修改用户-论文行为记录
+//            UserPaperBehavior ub = new UserPaperBehavior();
+//            ub.setUid(login_user.getId());
+//            ub.setAuthor(no);
+//            ub.setReaded(yes);
+//            ub.setInterest(3);
+//            ub.setPid(id);
+//            userPaperService.insertObject(ub);
+//        }
         //标签
         List<String> tags=new ArrayList<String>();
         //获取标签
